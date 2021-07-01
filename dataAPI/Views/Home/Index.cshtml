@@ -1,0 +1,178 @@
+﻿
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta name="viewport" content="width=device-width" />
+    <title>Index</title>
+</head>
+<body>
+    <div>
+        <input placeholder="Şehir ismi" id="city_name" />
+        <button id="city_namebutton">Şehri getir</button>
+        <br />
+        <input placeholder="Şehir kodu" id="city_code" />
+        <button id="city_codebutton">Şehri getir</button>
+        <button id="city_districtbutton">Plakadan ilçeleri getir</button>
+        <br />
+
+        <input placeholder="İlçe adı" id="district_name" />
+        <button id="district_namebutton">İlçeyi getir</button>
+        <br />
+        <input placeholder="Posta kodu" id="zip_code" />
+        <button id="zip_codebutton">Posta kodundan ilçeyi getir</button>
+        <br />
+        <br />
+        <br />
+        <select name="sortingselect" id="sortingselect">
+            <option disabled selected value="default">-</option>
+            <option value="asc">Baştan sona</option>
+            <option value="desc">Sondan başa</option>
+        </select>
+        <button id="sort">Sıralama</button>
+
+    </div>
+    <div>
+        <h1 id="cityname"></h1>
+        <div id="districtname"></div>
+    </div>
+</body>
+</html>
+@*
+    Şehir koduyla arama
+*@
+<script>
+    $('#city_codebutton').on('click', function () {
+        var citycode = $('#city_code').val()
+        $.ajax({
+            type: 'GET',
+            url: '/api/City/GetCityByCode/{id}',
+            data: {
+                'id': citycode
+            },
+            success: function (response) {
+                var tmpData = JSON.parse(response);
+                var formattedJson = JSON.stringify(tmpData, null, '\t');
+                console.log(formattedJson);
+            }
+
+        });
+    });
+</script>
+@*
+    Şehir ismiyle arama
+*@
+<script>
+    $('#city_namebutton').on('click', function () {
+        var cityname = $('#city_name').val()
+        $.ajax({
+            type: 'GET',
+            url: '/api/City/GetCityByName/{name}',
+            data: {
+                'name': cityname
+            },
+            success: function (response) {
+                var tmpData = JSON.parse(response);
+                var formattedJson = JSON.stringify(tmpData, null, '\t');
+                console.log(formattedJson);
+            }
+
+        });
+    });
+</script>
+@*
+    İlçe adıyla arama
+*@
+<script>
+    $('#district_namebutton').on('click', function () {
+        var districtname = $('#district_name').val()
+        $.ajax({
+            type: 'GET',
+            url: '/api/City/GetDistrictByName/{name}',
+            data: {
+                'name': districtname
+            },
+            success: function (response) {
+                var tmpData = JSON.parse(response);
+                var formattedJson = JSON.stringify(tmpData, null, '\t');
+                console.log(formattedJson);
+            }
+
+        });
+    });
+</script>
+@*
+    Posta koduyla arama
+*@
+<script>
+    $('#zip_codebutton').on('click', function () {
+        var zipcode = $('#zip_code').val()
+        $.ajax({
+            type: 'GET',
+            url: '/api/City/GetZipByCode/{code}',
+            data: {
+                'code': zipcode
+            },
+            success: function (response) {
+                var tmpData = JSON.parse(response);
+                var formattedJson = JSON.stringify(tmpData, null, '\t');
+                console.log(formattedJson);
+            }
+
+        });
+    });
+</script>
+@*
+    Şehir koduyla ilçe arama
+*@
+<script>
+    $('#city_districtbutton').on('click', function () {
+        var citycode = $('#city_code').val()
+        $.ajax({
+            type: 'GET',
+            url: '/api/City/GetDistrictsByCityCode/{id}',
+            data: {
+                'id': citycode
+            },
+            success: function (response) {
+                var tmpData = JSON.parse(response);
+                var formattedJson = JSON.stringify(tmpData, null, '\t');
+                console.log(formattedJson);
+            }
+
+        });
+    });
+</script>
+@*
+   sıralama
+*@
+<script>
+    $('#sort').on('click', function () {
+        if ($("#sortingselect option:selected").val() == "desc") {
+            $.ajax({
+                type: 'GET',
+                url: '/api/City/GetCitiesDesc',
+                success: function (response) {
+                    console.log(response);
+                }
+
+            });
+        }
+        else if ($("#sortingselect option:selected").val() == "asc") {
+            $.ajax({
+                type: 'GET',
+                url: '/api/City/GetCitiesAsc',
+                success: function (response) {
+                    console.log(response);
+                }
+
+            });
+        }    
+    });
+</script>
+
