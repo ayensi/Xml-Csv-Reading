@@ -1,4 +1,5 @@
-﻿<AddressInfo>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AddressInfo>
     <City name="Adana" code="01">
       <District name="Aladağ">
         <Zip code="01720" />

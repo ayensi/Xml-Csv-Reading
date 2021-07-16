@@ -1,208 +1,134 @@
 ﻿using dataAPI.Data;
 using dataAPI.Models;
-using Microsoft.VisualBasic.FileIO;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Web;
 using System.Xml;
+using System.Xml.Serialization;
+using System.Linq;
+using System.Xml.Linq;
+using static dataAPI.WebApiApplication;
 
 namespace dataAPI.Business
 {
     public class Reading : IRead
     {
-        //CSV Reading
-        public List<City> Read(City city, List<City> cities)
+        private string DataSource = Globals.dataSource;
+        private string XMLPath = Globals.xmlPath;
+        public AddressInfo Read()
         {
-            int tmp_code = 0;
-            using (TextFieldParser parser = new TextFieldParser(@"C:\Users\Okan Bey\source\repos\dataAPI\dataAPI\Files\sample_data.csv"))
+            switch (DataSource)
             {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
-                while (!parser.EndOfData)
-                {
-                    //Process row
-                    string[] fields = parser.ReadFields();
-                    foreach (var field in fields)
+                case "XML":
+                    AddressInfo deserialized;
+                    XmlSerializer deserializer = new XmlSerializer(typeof(AddressInfo));
+                    using (TextReader reader = new StreamReader(XMLPath))
                     {
-                        if (fields[0] != "CityName")
-                        {
-
-                            city = new City();
-                            city.city_name = fields[0];
-                            city.city_code = Convert.ToInt32(fields[1]);
-                            if (cities.Count == 0)
-                            {
-                                tmp_code = Convert.ToInt32(fields[1]);
-                                cities.Add(city);
-                            }
-                            else
-                            {
-
-                                if (city.city_code != tmp_code)
-                                {
-                                    tmp_code = Convert.ToInt32(fields[1]);
-                                    cities.Add(city);
-                                }
-                            }
-                        }
-
+                        object obj = deserializer.Deserialize(reader);
+                        deserialized = (AddressInfo)obj;
                     }
-
-                }
-
+                    return deserialized;
+                default:
+                    return null;
             }
-            return cities;
         }
-        public List<District> Read(District district, List<District> districts)
+        public AddressInfo ReadWithCityCode(int citycode)
         {
-            string tmp_name = "";
-            using (TextFieldParser parser = new TextFieldParser(@"C:\Users\Okan Bey\source\repos\dataAPI\dataAPI\Files\sample_data.csv"))
+            switch (DataSource)
             {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
-                while (!parser.EndOfData)
-                {
-                    //Process row
-                    string[] fields = parser.ReadFields();
-                    foreach (var field in fields)
+                case "XML":
+                    AddressInfo deserialized;
+                    XmlSerializer deserializer = new XmlSerializer(typeof(AddressInfo));
+                    using (TextReader reader = new StreamReader(XMLPath))
                     {
-                        if (fields[0] != "CityName")
-                        {
-
-                            district = new District();
-                            district.city_code = Convert.ToInt32(fields[1]);
-                            district.district_name = fields[2];
-                            if (districts.Count == 0)
-                            {
-                                tmp_name = fields[2];
-                                districts.Add(district);
-                            }
-                            else
-                            {
-                                if (district.district_name != tmp_name)
-                                {
-                                    tmp_name = fields[2];
-                                    districts.Add(district);
-                                }
-                            }
-                        }
-
+                        object obj = deserializer.Deserialize(reader);
+                        deserialized = (AddressInfo)obj;
                     }
-
-                }
-
+                    deserialized.City = deserialized.City.Where(x => x.city_code == citycode).ToList();
+                    return deserialized;
+                default:
+                    return null;
             }
-            return districts;
-        }
-        public List<Zip> Read(Zip zip, List<Zip> zips)
-        {
-            int tmp_code = 0;
-            using (TextFieldParser parser = new TextFieldParser(@"C:\Users\Okan Bey\source\repos\dataAPI\dataAPI\Files\sample_data.csv"))
-            {
-                parser.TextFieldType = FieldType.Delimited;
-                parser.SetDelimiters(",");
-                while (!parser.EndOfData)
-                {
-                    //Process row
-                    string[] fields = parser.ReadFields();
-                    foreach (var field in fields)
-                    {
-                        if (fields[0] != "CityName")
-                        {
 
+
+        }
+
+        public AddressInfo ReadWithDistrictName(string districtname)
+        {
+            switch (DataSource)
+            {
+                case "XML":
+                    AddressInfo addressInfo = new AddressInfo
+                    {
+                        City = new List<City>()
+                    };
+                    City city = new City();
+                    District dist = new District();
+                    Zip zip = new Zip();
+                    XmlDocument xml = new XmlDocument();
+                    xml.Load(XMLPath);
+
+                    XmlNodeList xnList = xml.SelectNodes($"/AddressInfo/City/District[@name='{districtname}']");
+                    foreach (XmlNode xn in xnList)
+                    {
+                        city.city_name = xn.ParentNode.Attributes["name"].Value;
+                        city.city_code = Convert.ToInt32(xn.ParentNode.Attributes["code"].Value);
+                        dist.district_name = xn.Attributes["name"].Value;
+                        foreach (XmlNode xmlNode in xn)
+                        {
+                            zip.zip_code = Convert.ToInt32(xmlNode.Attributes["code"].Value);
+                            dist.Zip.Add(zip);
                             zip = new Zip();
-                            zip.district_name = fields[2];
-                            zip.zip_code = Convert.ToInt32(fields[3]);
-                            if (zips.Count == 0)
-                            {
-                                tmp_code = Convert.ToInt32(fields[3]);
-                                zips.Add(zip);
-                            }
-                            else
-                            {
-
-                                if (zip.zip_code != tmp_code)
-                                {
-                                    tmp_code = Convert.ToInt32(fields[3]);
-                                    zips.Add(zip);
-                                }
-                            }
-
                         }
-
+                        city.District.Add(dist);
+                        addressInfo.City.Add(city);
+                        city = new City();
+                        dist = new District();
                     }
+                    return addressInfo;
 
-                }
-
+                default:
+                    return null;
             }
-            return zips;
         }
-
-        //XML Reading
-        public List<City> Read(List<City> cities)
+            
+        public AddressInfo ReadWithZipCode(int zipcode)
         {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(System.Web.HttpContext.Current.Server.MapPath("~/Files/sample_data.xml"));
-            foreach (XmlNode node in doc.SelectNodes("/AddressInfo/City"))
+            switch (DataSource)
             {
-                if (node.Attributes != null)
-                {
-                    var nameAttribute = node.Attributes["name"];
-                    var codeAttribute = node.Attributes["code"];
-                    if (nameAttribute != null && codeAttribute != null)
-                        cities.Add(new City
-                        {
-                            city_name = nameAttribute.Value,
-                            city_code = Convert.ToInt32(codeAttribute.Value)
-                        });
-                }
+                case "XML":
+                    AddressInfo addressInfo = new AddressInfo
+                    {
+                        City = new List<City>()
+                    };
+                    City city = new City();
+                    District dist = new District();
+                    Zip zip = new Zip();
+                    XmlDocument xml = new XmlDocument();
+                    xml.Load(XMLPath);
 
-            }
-            return cities;
-        }
-        public List<District> Read(List<District> districts)
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(System.Web.HttpContext.Current.Server.MapPath("~/Files/sample_data.xml"));
-            foreach (XmlNode node in doc.SelectNodes("/AddressInfo/City/District"))
-            {
-                if (node.Attributes != null)
-                {
-                    var nameAttribute = node.Attributes["name"];
-                    var parentNode = node.ParentNode;
-                    if (nameAttribute != null)
-                        districts.Add(new District
-                        {
-                            district_name = nameAttribute.Value,
-                            city_code = Convert.ToInt32(parentNode.Attributes["code"].Value)
-                        });
-                }
+                    XmlNodeList xnList = xml.SelectNodes($"/AddressInfo/City/District/Zip[@code='{zipcode}']");
+                    foreach (XmlNode xn in xnList)
+                    {
+                        city.city_name = xn.ParentNode.ParentNode.Attributes["name"].Value;
+                        city.city_code = Convert.ToInt32(xn.ParentNode.ParentNode.Attributes["code"].Value);
+                        dist.district_name = xn.ParentNode.Attributes["name"].Value;
+                        zip.zip_code = Convert.ToInt32(xn.Attributes["code"].Value);
+                        dist.Zip.Add(zip);
+                        zip = new Zip();
+                        city.District.Add(dist);
+                        addressInfo.City.Add(city);
+                        city = new City();
+                        dist = new District();
+                    }
+                    return addressInfo;
 
+                default:
+                    return null;
             }
-            return districts;
-        }
-        public List<Zip> Read(List<Zip> zips)
-        {
-            XmlDocument doc = new XmlDocument();
-            doc.Load(System.Web.HttpContext.Current.Server.MapPath("~/Files/sample_data.xml"));
-            foreach (XmlNode node in doc.SelectNodes("/AddressInfo/City/District/Zip"))
-            {
-                if (node.Attributes != null)
-                {
-                    var codeAttribute = node.Attributes["code"];
-                    var parentNode = node.ParentNode;
-                    if (codeAttribute != null)
-                        zips.Add(new Zip
-                        {
-                            district_name = parentNode.Attributes["name"].Value,
-                            zip_code = Convert.ToInt32(codeAttribute.Value)
-                        });
-                }
-
-            }
-            return zips;
         }
 
     }
-}
+}       

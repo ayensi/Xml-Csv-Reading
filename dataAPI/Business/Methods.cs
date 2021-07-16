@@ -1,49 +1,75 @@
-﻿using System;
+﻿using dataAPI.Data;
+using dataAPI.Models;
+using Nancy.Json;
+using System;
 using System.Collections.Generic;
-using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using System.Web;
-using System.Web.Configuration;
+using System.Xml;
 
 namespace dataAPI.Business
 {
-    public class Methods
+    public class Methods : IRepository
     {
-        public string ChooseClassWithCodes(string methodname, int x)
+        Reading reading = new Reading();
+        public List<District> GetDistrictsByCityCode(int code)
         {
-            int[] ids = new int[] { x };
-            object[] array = (from i in ids select i).Cast<object>().ToArray();
-            var defaultdatasource = WebConfigurationManager.AppSettings["DefaultDataSource"];
-            Type type = Type.GetType("dataAPI.Business." + defaultdatasource);
-            Object obj = Activator.CreateInstance(type);
-            MethodInfo methodInfo = type.GetMethod(methodname);
-            var json = methodInfo.Invoke(obj, array).ToString();
-            return json;
+            List<District> districts = new List<District>();
+            districts = reading.ReadWithCityCode(code).City.SelectMany(x => x.District).ToList();
+            return districts;
         }
-        public string ChooseClassWithNames(string methodname, string x)
+
+        public List<Zip> GetZipCodesByCityCode(int code)
         {
-            string[] ids = new string[] { x };
-            object[] array = (from i in ids select i).Cast<object>().ToArray();
-            var defaultdatasource = WebConfigurationManager.AppSettings["DefaultDataSource"];
-            Type type = Type.GetType("dataAPI.Business." + defaultdatasource);
-            Object obj = Activator.CreateInstance(type);
-            MethodInfo methodInfo = type.GetMethod(methodname);
-            var json = methodInfo.Invoke(obj, array).ToString();
-            return json;
+            List<Zip> zips = new List<Zip>();
+            zips = reading.ReadWithCityCode(code).City.SelectMany(x => x.District).SelectMany(x => x.Zip).ToList();
+            return zips;
         }
-        public string ChooseClass(string methodname)
+        public List<Zip> GetZipCodesByDistrictName(string name)
         {
-            var defaultdatasource = WebConfigurationManager.AppSettings["DefaultDataSource"];
-            Type type = Type.GetType("dataAPI.Business." + defaultdatasource);
-            Object obj = Activator.CreateInstance(type);
-            MethodInfo methodInfo = type.GetMethod(methodname);
-            var json = methodInfo.Invoke(obj, null).ToString();
-            return json;
+            List<Zip> zips = new List<Zip>();
+            zips = reading.ReadWithDistrictName(name).City.SelectMany(x=>x.District.SelectMany(y=>y.Zip)).ToList();
+            return zips;
         }
-        public void ChangeDefaultDataSource(string datasource)
+        public City GetCityByDistrictName(string name)
         {
-            ConfigurationManager.AppSettings.Set("DefaultDataSource", datasource);
+            City city = new City();
+            city = reading.ReadWithDistrictName(name).City.FirstOrDefault();
+            return city;
+        }
+        public List<District> GetDistrictByZipCode(int code)
+        {
+            List<District> districts = new List<District>();
+            districts = reading.ReadWithZipCode(code).City.SelectMany(x=>x.District).ToList();
+            return districts;
+        }
+        public List<City> GetCityByZipCode(int code)
+        {
+            List<City> cities = new List<City>();
+            cities = reading.ReadWithZipCode(code).City.ToList();
+            return cities;
+        }
+
+        public List<City> GetCities()
+        {
+            List<City> cities = new List<City>();
+            cities = reading.Read().City.ToList();
+            return cities;
+        }
+
+        public List<District> GetDistricts()
+        {
+            List<District> districts = new List<District>();
+            districts = reading.Read().City.FirstOrDefault().District.ToList();
+            return districts;
+        }
+
+        public List<Zip> GetZips()
+        {
+            List<Zip> zips = new List<Zip>();
+            zips = reading.Read().City.FirstOrDefault().District.FirstOrDefault().Zip.ToList();
+            return zips;
         }
     }
 }

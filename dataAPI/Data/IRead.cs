@@ -9,15 +9,11 @@ namespace dataAPI.Data
 {
     interface IRead
     {
-        //CSV Reading
-        List<City> Read(City city, List<City> cities);
-        List<District> Read(District district, List<District> districts);
-        List<Zip> Read(Zip zip, List<Zip> zips);
+        AddressInfo Read();
+        AddressInfo ReadWithCityCode(int citycode);
+        AddressInfo ReadWithDistrictName(string districtname);
+        AddressInfo ReadWithZipCode(int zipcode);
 
-        //XML Reading
-        List<City> Read(List<City> cities);
-        List<District> Read(List<District> districts);
-        List<Zip> Read(List<Zip> zips);
-        
+
     }
 }

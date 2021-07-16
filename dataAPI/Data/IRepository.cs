@@ -13,14 +13,15 @@ namespace dataAPI.Data
 {
     interface IRepository
     {
-        string GetCity();
-        string GetCityByCode(int code);
-        string GetCityByName(string name);
-        string GetDistrict();
-        string GetDistrictByName(string name);
-        string GetZip();
-        string GetZipByCode(int code);
-        string GetDistrictsByCityCode(int code);
+        List<Zip> GetZipCodesByDistrictName(string name);
+        List<District> GetDistrictsByCityCode(int code);
+        List<District> GetDistrictByZipCode(int code);
+        List<City> GetCityByZipCode(int code);
+        List<City> GetCities();
+        List<District> GetDistricts();
+        List<Zip> GetZips();
+        List<Zip> GetZipCodesByCityCode(int code);
+        City GetCityByDistrictName(string name);
 
     }
 }
